@@ -12,7 +12,7 @@ export default function Index(props) {
       count: 1,
       success({ tempFilePaths }) {
         Taro.navigateTo({
-          url: `/pages/drawer/drawer?imgSrc=${tempFilePaths[0]}`,
+          url: `/pages/drawer/drawer?path=${tempFilePaths[0]}`,
         });
       },
     });
