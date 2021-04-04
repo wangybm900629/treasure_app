@@ -21,6 +21,7 @@ export default class Drawer extends Component {
       point1: null,
       length: "",
       point2: null,
+      showCtx: true,
     };
   }
 
@@ -65,34 +66,44 @@ export default class Drawer extends Component {
       point1: { x, y },
       image: { width },
     } = this.state;
-    this.ctx.setFontSize(12);
-    this.ctx.setFillStyle("red");
-    this.ctx.fillText(fonts, x, y, width);
-    this.ctx.draw(true);
 
-    this.setState({
-      isOpened: false,
-      fonts: "",
-    });
+    this.setState(
+      {
+        isOpened: false,
+        fonts: "",
+        showCtx: true,
+      },
+      () => {
+        this.ctx.setFontSize(12);
+        this.ctx.setFillStyle("red");
+        this.ctx.fillText(fonts, x, y, width);
+        this.ctx.draw(true);
+      }
+    );
   };
 
   handleOk2 = () => {
     const { point1, point2, length } = this.state;
-    this.drawLineArrow(point1.x, point1.y, point2.x, point2.y, "red");
-    this.drawLineArrow(point2.x, point2.y, point1.x, point1.y, "red");
-    this.ctx.setFontSize(12);
-    this.ctx.setFillStyle("red");
-    this.ctx.fillText(
-      length,
-      (point1.x + point2.x - this.ctx.measureText(length).width) / 2,
-      (point1.y + point2.y) / 2 - 8
-    );
+    this.setState(
+      {
+        isOpened2: false,
+        length: "",
+        showCtx: true,
+      },
+      () => {
+        this.drawLineArrow(point1.x, point1.y, point2.x, point2.y, "red");
+        this.drawLineArrow(point2.x, point2.y, point1.x, point1.y, "red");
+        this.ctx.setFontSize(12);
+        this.ctx.setFillStyle("red");
+        this.ctx.fillText(
+          length,
+          (point1.x + point2.x - this.ctx.measureText(length).width) / 2,
+          (point1.y + point2.y) / 2 - 8
+        );
 
-    this.ctx.draw(true);
-    this.setState({
-      isOpened2: false,
-      length: "",
-    });
+        this.ctx.draw(true);
+      }
+    );
     this.isMove = false;
   };
 
@@ -187,24 +198,26 @@ export default class Drawer extends Component {
   };
 
   render() {
-    const { image, isOpened, fonts, isOpened2, length } = this.state;
+    const { image, isOpened, fonts, isOpened2, length, showCtx } = this.state;
     return (
       <View className="drawer">
         <View className="content">
           {image && (
             <Canvas
-              style={{ ...image }}
+              style={{ ...image, display: showCtx ? "block" : "none" }}
               canvasId="treasure_canvas"
               onTouchEnd={(e) => {
                 if (this.isMove) {
                   this.setState({
                     isOpened2: true,
                     point2: e.changedTouches[0],
+                    showCtx: false,
                   });
                 } else {
                   this.setState({
                     isOpened: true,
                     point1: e.changedTouches[0],
+                    showCtx: false,
                   });
                 }
               }}
@@ -246,7 +259,7 @@ export default class Drawer extends Component {
             <AtModalAction>
               <Button
                 onClick={() => {
-                  this.setState({ isOpened: false, fonts: "" });
+                  this.setState({ isOpened: false, fonts: "", showCtx: true });
                 }}
               >
                 取消
@@ -269,7 +282,11 @@ export default class Drawer extends Component {
             <AtModalAction>
               <Button
                 onClick={() => {
-                  this.setState({ isOpened2: false, length: "" });
+                  this.setState({
+                    isOpened2: false,
+                    length: "",
+                    showCtx: true,
+                  });
                   this.isMove = false;
                 }}
               >
