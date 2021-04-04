@@ -1,0 +1,22 @@
+.drawer {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  .footer {
+    display: flex;
+    padding: 30px;
+    width: 100%;
+  }
+  .content {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    z-index: 1;
+  }
+}
+.my_modal {
+  z-index: 9999;
+  position: absolute;
+}
