@@ -6,6 +6,10 @@ import Taro from "@tarojs/taro";
 import "./index.scss";
 
 export default function Index(props) {
+  Taro.showShareMenu({
+    withShareTicket: true,
+    success() {},
+  });
   const handleTake = () => {
     Taro.chooseImage({
       sizeType: "original",

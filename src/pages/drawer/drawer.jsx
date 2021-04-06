@@ -27,6 +27,10 @@ export default class Drawer extends Component {
   }
 
   onReady() {
+    Taro.showShareMenu({
+      withShareTicket: true,
+      success() {},
+    });
     this.query = Taro.createSelectorQuery();
     this.ctx = Taro.createCanvasContext("treasure_canvas");
     this.query.select(".content").boundingClientRect((rect) => {
@@ -335,7 +339,7 @@ export default class Drawer extends Component {
             <AtModalHeader>输入尺寸</AtModalHeader>
             <AtModalContent>
               <Input
-                type="number"
+                type="text"
                 value={length}
                 placeholder="请输入尺寸"
                 onInput={(e) => this.setState({ length: e.detail.value })}
