@@ -22,6 +22,7 @@ export default class Drawer extends Component {
       length: "",
       point2: null,
       showCtx: true,
+      filePath: path,
     };
   }
 
@@ -51,7 +52,22 @@ export default class Drawer extends Component {
             },
             () => {
               this.ctx.drawImage(res.path, 0, 0, width, height);
-              this.ctx.draw();
+              this.ctx.draw(true, () => {
+                Taro.canvasToTempFilePath({
+                  x: 0,
+                  y: 0,
+                  width,
+                  height,
+                  destWidth: width,
+                  destHeight: height,
+                  canvasId: "treasure_canvas",
+                  success: ({ tempFilePath }) => {
+                    this.setState({
+                      filePath: tempFilePath,
+                    });
+                  },
+                });
+              });
             }
           );
         },
@@ -64,7 +80,7 @@ export default class Drawer extends Component {
     const {
       fonts,
       point1: { x, y },
-      image: { width },
+      image: { width, height },
     } = this.state;
 
     this.setState(
@@ -77,13 +93,33 @@ export default class Drawer extends Component {
         this.ctx.setFontSize(12);
         this.ctx.setFillStyle("red");
         this.ctx.fillText(fonts, x, y, width);
-        this.ctx.draw(true);
+        this.ctx.draw(true, () => {
+          Taro.canvasToTempFilePath({
+            x: 0,
+            y: 0,
+            width,
+            height,
+            destWidth: width,
+            destHeight: height,
+            canvasId: "treasure_canvas",
+            success: (res) => {
+              this.setState({
+                filePath: res.tempFilePath,
+              });
+            },
+          });
+        });
       }
     );
   };
 
   handleOk2 = () => {
-    const { point1, point2, length } = this.state;
+    const {
+      point1,
+      point2,
+      length,
+      image: { width, height },
+    } = this.state;
     this.setState(
       {
         isOpened2: false,
@@ -100,7 +136,22 @@ export default class Drawer extends Component {
           (point1.y + point2.y) / 2 - 8
         );
 
-        this.ctx.draw(true);
+        this.ctx.draw(true, () => {
+          Taro.canvasToTempFilePath({
+            x: 0,
+            y: 0,
+            width,
+            height,
+            destWidth: width,
+            destHeight: height,
+            canvasId: "treasure_canvas",
+            success: (res) => {
+              this.setState({
+                filePath: res.tempFilePath,
+              });
+            },
+          });
+        });
       }
     );
     this.isMove = false;
@@ -149,23 +200,26 @@ export default class Drawer extends Component {
   };
 
   handleSave = () => {
-    const {
-      image: { width, height },
-    } = this.state;
-    Taro.canvasToTempFilePath({
-      x: 0,
-      y: 0,
-      width,
-      height,
-      destWidth: width,
-      destHeight: height,
-      canvasId: "treasure_canvas",
-      success: function (res) {
-        Taro.getSetting({
-          success: ({ authSetting }) => {
-            if (authSetting["scope.writePhotosAlbum"]) {
+    const { filePath } = this.state;
+    Taro.getSetting({
+      success: ({ authSetting }) => {
+        if (authSetting["scope.writePhotosAlbum"]) {
+          Taro.saveImageToPhotosAlbum({
+            filePath,
+            success() {
+              Taro.showToast({
+                title: "成功",
+                icon: "success",
+                duration: 2000,
+              });
+            },
+          });
+        } else {
+          Taro.authorize({
+            scope: "scope.writePhotosAlbum",
+            success() {
               Taro.saveImageToPhotosAlbum({
-                filePath: res.tempFilePath,
+                filePath,
                 success() {
                   Taro.showToast({
                     title: "成功",
@@ -174,33 +228,17 @@ export default class Drawer extends Component {
                   });
                 },
               });
-            } else {
-              Taro.authorize({
-                scope: "scope.writePhotosAlbum",
+            },
+            fail() {
+              Taro.showModal({
+                content: "您已拒绝，是否重新打开设置",
                 success() {
-                  Taro.saveImageToPhotosAlbum({
-                    filePath: res.tempFilePath,
-                    success() {
-                      Taro.showToast({
-                        title: "成功",
-                        icon: "success",
-                        duration: 2000,
-                      });
-                    },
-                  });
-                },
-                fail() {
-                  Taro.showModal({
-                    content: "您已拒绝，是否重新打开设置",
-                    success() {
-                      Taro.openSetting();
-                    },
-                  });
+                  Taro.openSetting();
                 },
               });
-            }
-          },
-        });
+            },
+          });
+        }
       },
     });
   };
@@ -214,6 +252,7 @@ export default class Drawer extends Component {
       length,
       showCtx,
       point1,
+      filePath,
     } = this.state;
     return (
       <View className="drawer">
@@ -239,12 +278,14 @@ export default class Drawer extends Component {
               }}
               onTouchMove={(e) => {
                 this.isMove = true;
-                // this.drawArrow(
-                //   point1.x,
-                //   point1.y,
-                //   e.changedTouches[0].x,
-                //   e.changedTouches[0].y
-                // );
+                this.ctx.drawImage(filePath, 0, 0, image.width, image.height);
+                this.drawArrow(
+                  point1.x,
+                  point1.y,
+                  e.changedTouches[0].x,
+                  e.changedTouches[0].y
+                );
+                this.ctx.draw(true);
               }}
               onTouchStart={(e) => {
                 this.setState({ point1: e.changedTouches[0] });
@@ -257,7 +298,7 @@ export default class Drawer extends Component {
             type="warn"
             onClick={() => {
               this.ctx.drawImage(this.path, 0, 0, image.width, image.height);
-              this.ctx.draw();
+              this.ctx.draw(true);
             }}
           >
             清除
