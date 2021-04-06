@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Button } from "@tarojs/components";
+import { View, Button, Image } from "@tarojs/components";
+import app1 from "../../assets/hi_measure.png";
 import Taro from "@tarojs/taro";
 
 import "./index.scss";
@@ -33,12 +34,25 @@ export default function Index(props) {
   return (
     <View className="index">
       <View className="index_bg"></View>
-      <Button type="primary" onClick={handleTake}>
+      <Button
+        style={{ background: "brown" }}
+        type="primary"
+        onClick={handleTake}
+      >
         拍照
       </Button>
       <Button type="warn" onClick={handleSelect}>
         从相册中选择
       </Button>
+      <Image
+        className="app"
+        src={app1}
+        onClick={() =>
+          Taro.navigateToMiniProgram({
+            appId: "wx6279152a939aa90d",
+          })
+        }
+      />
     </View>
   );
 }
